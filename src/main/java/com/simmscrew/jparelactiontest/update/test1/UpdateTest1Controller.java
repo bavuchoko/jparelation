@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Controller
@@ -16,8 +17,10 @@ import java.util.List;
 public class UpdateTest1Controller {
 
 
-    //부모에는 @OneToMany, @JoinColumn   자식에는 @ManyToOne, @JoinColumn 설정  ->  부모1입력 -> 자식1입력 -> 자식2입력... 할 때 부모1의 자식외래키 때문에 에러발생
-
+    /**
+     * @Transactional 이 걸려있을경우 영속성 상태의 엔티티에 set 만 해도 transaction 이 끝나는 시점에 영구저장소(DB)에도 업데이트 반영됨.
+     * 트랜잭션 어노테이션을 걸지 않을 경우 동일한 id 로 세팅된 엔티티를 save 할경우 update 됨.
+     * */
     @Autowired
     UpdateTest1Service testService;
     @GetMapping("insert")
@@ -34,20 +37,35 @@ public class UpdateTest1Controller {
     }
 
 
-    @PostMapping("update")
+    @PostMapping("jpaupdate")
     public ResponseEntity update() {
 
-        testService.update();
+        testService.jpaUpdate();
+        List<UpdateParent_1> p1 = testService.selectAll();
+        return ResponseEntity.ok().body(p1);
+    }
+    @PostMapping("jpaupdateTx")
+    public ResponseEntity update2() {
+
+        testService.jpaUpdateTx();
         List<UpdateParent_1> p1 = testService.selectAll();
         return ResponseEntity.ok().body(p1);
     }
 
-    @PostMapping("updateflush")
+    @PostMapping("rpupdate")
     public ResponseEntity updateFlush() {
 
-        testService.updateFlush();
+        testService.rpUpdate();
         List<UpdateParent_1> p1 = testService.selectAll();
         return ResponseEntity.ok().body(p1);
     }
+    @PostMapping("rpupdatetx")
+    public ResponseEntity updateFlushTx() {
+
+        testService.rpUpdateTx();
+        List<UpdateParent_1> p1 = testService.selectAll();
+        return ResponseEntity.ok().body(p1);
+    }
+
 
 }
